@@ -1,0 +1,82 @@
+{
+    "train_data_dir": "/data/dmhomo/dataset",
+    "db_path": "/mnt/exp/_old/CameraFlow/DGM/merged_full.h5",
+    "test_data_dir": "/mnt/HomoGAN/data/",
+    "basis_dir": "/mnt/exp/CamFlowRebuttal/basis_dir/",
+    "net_type": "CamFlow",
+    "net_stg": 4,
+    "num_basis": 24,
+    "unsup_weight": 100,
+    "_unfreeze_blocks_token_noise_and_bothHeads": false,
+    "_freeze_feature_extractor": true,
+    "eval_type": [
+        "val",
+        "test"
+    ],
+    "exp_name": "camera-ready",
+    "major_metric": "AVG",
+    "save_mode": "local",
+    "random_homo": 0.10,
+    "learning_rate": 1e-4,
+    "partial_data_number": 700000,
+    "gamma": 0.8,
+    "mask_loss_weight": 0,
+    "fil_weight": 0,
+    "train_batch_size": 8,
+    "eval_batch_size": 8,
+    "num_epochs": 10,
+    "train_num_steps": 2000,
+    "num_workers": 8,
+    "cpu": 8,
+    "memory": 49600,
+    "gpu": 4,
+    "rho": 16,
+    "crop_size": [
+        320,
+        576
+    ],
+    "ori_size": [
+        360,
+        640
+    ],
+    "generate_size": 256,
+    "in_channels": 2,
+    "patch_size": 4,
+    "in_chans": 2,
+    "embed_dim": 24,
+    "depths": [
+        2,
+        4,
+        6
+    ],
+    "layer_depth": [
+        3,
+        2,
+        1
+    ],
+    "num_heads": [
+        3,
+        12,
+        24
+    ],
+    "num_decoder_heads": 4,
+    "num_decoder_layers": 4,
+    "window_size": 8,
+    "mlp_ratio": 3,
+    "qkv_bias": true,
+    "qk_scale": null,
+    "drop_rate": 0,
+    "drop_path_rate": 0,
+    "attn_drop_rate": 0,
+    "ape": false,
+    "patch_norm": true,
+    "use_checkpoint": false,
+    "shift": 4,
+    "cls_weight": 0.1,
+    "dynamic_apha": false,
+    "mask_use_fea": true,
+    "mk_weight": 0.2,
+    "h_weight": 1,
+    "use_open": true,
+    "pretrain_phase": true
+}
