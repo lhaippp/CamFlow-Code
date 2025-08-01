@@ -775,17 +775,10 @@ class GhofBMK(Dataset):
         assert phase in ["test", "val"]
 
         # Use the merged file instead of separate data and mask files
-        self.path = './GHOF-Cam.npy'
+        model_dir = params.model_dir if hasattr(params, 'model_dir') else 'data/CamFlow-ICCV25'
+        self.path = os.path.join(model_dir, 'GHOF-Cam.npy')
         self.data = np.load(self.path, allow_pickle=True)
 
-        # No need to load mask separately since it's now included in the data
-        # self.mask_pth = '/mnt/exp/CameraFlowMetric/GHOF_Clean_20230705_mask_merged.npy'
-        # self.mask = np.load(self.mask_pth, allow_pickle=True)
-
-        # No need for assertion since mask is now part of data
-        # assert len(self.mask) == len(
-        #     self.data
-        # ), f"mask length {len(self.mask)} != data length {len(self.data)}"
         print(f"GhofBMK length {len(self.data)}")
 
         self.crop_size = params.crop_size

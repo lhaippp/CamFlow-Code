@@ -1,0 +1,28 @@
+# Essential dependencies for CamFlow
+torch>=1.8.0,<3.0.0
+torchvision>=0.9.0,<1.0.0
+numpy>=1.19.0,<2.0.0
+
+# Model utilities
+accelerate>=0.12.0
+timm>=0.6.0
+einops>=0.4.0
+
+# Computer vision
+opencv-python>=4.5.0
+kornia>=0.6.0
+
+# Image quality assessment
+pyiqa
+
+# Data handling
+h5py>=3.1.0
+imageio>=2.9.0
+huggingface_hub>=0.10.0
+
+# Utilities
+tqdm>=4.62.0
+coloredlogs>=15.0
+termcolor>=1.1.0
+matplotlib>=3.3.0
+prettytable>=2.0.0 
