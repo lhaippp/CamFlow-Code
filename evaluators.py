@@ -9,7 +9,14 @@ import numpy as np
 from datetime import datetime
 from abc import ABC, abstractmethod
 
-import pyiqa
+# Try to import pyiqa, but make it optional
+try:
+    import pyiqa
+    PYIQA_AVAILABLE = True
+except ImportError:
+    PYIQA_AVAILABLE = False
+    print("Warning: pyiqa not available. IQA metrics will be disabled.")
+
 from model.flow_utils import flow_error_avg
 from model.utils import get_warp_flow
 from common.iqa_utils import compute_masked_metrics
@@ -187,6 +194,11 @@ class IQAEvaluator(BaseEvaluator):
         
     def _init_iqa_metrics(self):
         """Initialize IQA metrics."""
+        if not PYIQA_AVAILABLE:
+            if self.accelerator.is_main_process:
+                self.logger.warning("pyiqa not available, IQA metrics disabled")
+            return None
+            
         try:
             metrics = {
                 'PSNR': pyiqa.create_metric('psnr'),

@@ -1,6 +1,13 @@
 import torch
 import numpy as np
-import pyiqa
+
+# Try to import pyiqa, but make it optional
+try:
+    import pyiqa
+    PYIQA_AVAILABLE = True
+except ImportError:
+    PYIQA_AVAILABLE = False
+    print("Warning: pyiqa not available in iqa_utils. IQA metrics will be disabled.")
 
 
 def compute_masked_metrics(img1_rgb, img2_rgb, mask, iqa_metrics=None):
@@ -51,6 +58,10 @@ def compute_masked_metrics(img1_rgb, img2_rgb, mask, iqa_metrics=None):
     img2_tensor = torch.from_numpy(img2_float).permute(2, 0, 1).unsqueeze(0)
 
     # 使用传入的指标或创建新的
+    if not PYIQA_AVAILABLE:
+        print("Warning: pyiqa not available, returning empty metrics")
+        return {'PSNR': float('nan'), 'SSIM': float('nan'), 'LPIPS': float('nan')}
+        
     if iqa_metrics is None:
         metrics = {
             'PSNR': pyiqa.create_metric('psnr'),
