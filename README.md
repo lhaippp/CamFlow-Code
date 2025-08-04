@@ -2,6 +2,37 @@
 
 ## Quick Start
 
+### Dataset Download
+Download the complete dataset from Hugging Face:
+```bash
+# Using Hugging Face Hub
+pip install huggingface_hub
+huggingface-cli download Lhaippp/CamFlow-ICCV25 --repo-type dataset --local-dir data
+```
+
+### Blind Inference
+```bash
+python blind_inference.py
+```
+
+### Data Structure
+```
+data/
+├── basis_24.pt      # Motion basis
+├── ckpt.pth         # Model weights  
+├── params.json      # Model configuration
+└── test_imgs/       # Test image pairs
+    ├── img1.png
+    └── img2.png
+```
+
+## Dataset
+- **Source**: [Lhaippp/CamFlow-ICCV25](https://huggingface.co/datasets/Lhaippp/CamFlow-ICCV25)
+- **Contents**: Pre-trained model, motion basis, configuration, and test images
+- **Usage**: Complete setup for camera motion estimation inference
+
+## Alternative Setup
+
 ### AI Coding
 
 ✅ **Verified with AI Assistance**: This repository has been successfully tested and reproduced using AI coding tools.
