@@ -1,5 +1,11 @@
 # Estimating 2D Camera Motion with Hybrid Motion Basis
 
+## 🌐 Web Demo (Try Now!)
+
+**🚀 Interactive Demo**: Test CamFlow camera motion estimation directly in your browser!
+
+**🔗 https://huggingface.co/spaces/Lhaippp/CamFlow-ICCV**
+
 ## Quick Start
 
 ### AI Coding
