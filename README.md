@@ -51,11 +51,6 @@ python blind_inference.py --model_path custom.pth --imgs_dir custom_images/
 python blind_inference.py --image_paths /path/to/img1.png /path/to/img2.png
 ```
 
-The script **automatically handles portrait images**:
-- 🔄 **Auto-rotation**: Portrait images are automatically rotated to landscape for network processing
-- 🎯 **Original orientation preserved**: All outputs (images, flows, GIFs) are rotated back to original orientation
-- ⚡ **Seamless processing**: No manual intervention required
-
 ### Evaluation
 ```bash
 # Basic evaluation
