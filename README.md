@@ -10,7 +10,7 @@ pip install huggingface_hub
 huggingface-cli download Lhaippp/CamFlow-ICCV25 --repo-type dataset --local-dir data
 ```
 
-### Blind Inference
+### Inference With Given Images
 ```bash
 python blind_inference.py
 ```

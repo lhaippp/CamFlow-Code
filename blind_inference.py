@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 """
-Blind inference script for CamFlow model.
-Simplified following KISS, YAGNI and SOLID principles.
+CamFlow Blind Inference - Camera Motion Estimation
+
+Estimates 2D camera motion between two images using hybrid motion basis.
+Outputs optical flow fields and creates visualization GIF showing warping results.
+
+Usage: python blind_inference.py
+- Place your images as data/test_imgs/img1.png and img2.png
+- Results saved as result.gif and flow data in results/ directory
+
+Following KISS, YAGNI and SOLID principles.
 """
 
 import os
@@ -33,45 +41,74 @@ def load_images():
     
     return images
 
-def create_gif(data_batch, output, path="result.gif"):
-    """Create GIF with original and warped images."""
-    # Extract images and flows
-    rgb_data = data_batch['imgs_rgb_full'][0].cpu().numpy()  # [6, H, W]
+def save_results(data_batch, output, output_dir="results"):
+    """Save inference results including flows and visualizations."""
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Extract data
+    rgb_data = data_batch['imgs_rgb_full'][0].cpu().numpy()
     img1 = np.clip(rgb_data[:3].transpose(1, 2, 0), 0, 1)
     img2 = np.clip(rgb_data[3:].transpose(1, 2, 0), 0, 1)
-    
     flow_f = output['flow_f'][0].cpu().numpy()
     flow_b = output['flow_b'][0].cpu().numpy()
     
-    # Convert to PIL images
-    to_pil = lambda x: Image.fromarray((x * 255).astype(np.uint8))
-    img1_pil, img2_pil = to_pil(img1), to_pil(img2)
+    # Save flow fields as numpy arrays
+    np.save(os.path.join(output_dir, 'flow_forward.npy'), flow_f)
+    np.save(os.path.join(output_dir, 'flow_backward.npy'), flow_b)
     
-    # Warp images
+    # Save individual images
+    to_pil = lambda x: Image.fromarray((x * 255).astype(np.uint8))
+    to_pil(img1).save(os.path.join(output_dir, 'img1.png'))
+    to_pil(img2).save(os.path.join(output_dir, 'img2.png'))
+    
+    # Save warped images
     def warp_image(img, flow):
         img_t = torch.from_numpy(img).permute(2, 0, 1).unsqueeze(0).float()
         flow_t = torch.from_numpy(flow).permute(2, 0, 1).unsqueeze(0).float()
-        warped = get_warp_flow(img_t, flow_t)
-        return warped[0].permute(1, 2, 0).clamp(0, 1).numpy()
+        return get_warp_flow(img_t, flow_t)[0].permute(1, 2, 0).clamp(0, 1).numpy()
+    
+    to_pil(warp_image(img2, flow_f)).save(os.path.join(output_dir, 'img2_warped.png'))
+    to_pil(warp_image(img1, flow_b)).save(os.path.join(output_dir, 'img1_warped.png'))
+    
+    return output_dir
+
+def create_gif(data_batch, output, path="result.gif"):
+    """Create animated GIF showing camera motion estimation results."""
+    # Extract data
+    rgb_data = data_batch['imgs_rgb_full'][0].cpu().numpy()
+    img1 = np.clip(rgb_data[:3].transpose(1, 2, 0), 0, 1)
+    img2 = np.clip(rgb_data[3:].transpose(1, 2, 0), 0, 1)
+    flow_f = output['flow_f'][0].cpu().numpy()
+    flow_b = output['flow_b'][0].cpu().numpy()
+    
+    # Convert to PIL
+    to_pil = lambda x: Image.fromarray((x * 255).astype(np.uint8))
+    img1_pil, img2_pil = to_pil(img1), to_pil(img2)
+    
+    # Warp images using estimated flows
+    def warp_image(img, flow):
+        img_t = torch.from_numpy(img).permute(2, 0, 1).unsqueeze(0).float()
+        flow_t = torch.from_numpy(flow).permute(2, 0, 1).unsqueeze(0).float()
+        return get_warp_flow(img_t, flow_t)[0].permute(1, 2, 0).clamp(0, 1).numpy()
     
     img2_warped = to_pil(warp_image(img2, flow_f))
     img1_warped = to_pil(warp_image(img1, flow_b))
     
-    # Create frames
+    # Create animation frames
     H, W = img1.shape[:2]
     frame1 = Image.new('RGB', (W * 3, H))
     frame2 = Image.new('RGB', (W * 3, H))
     
-    # Frame 1: img1 | img1 | img2
+    # Frame 1: Original sequence [img1 | img1 | img2]
     for i, img in enumerate([img1_pil, img1_pil, img2_pil]):
         frame1.paste(img, (i * W, 0))
     
-    # Frame 2: img2 | img2_warped | img1_warped
+    # Frame 2: Warped results [img2 | img2→img1 | img1→img2]
     for i, img in enumerate([img2_pil, img2_warped, img1_warped]):
         frame2.paste(img, (i * W, 0))
     
-    # Save GIF
-    frame1.save(path, save_all=True, append_images=[frame2], duration=150, loop=0)
+    # Save animated GIF
+    frame1.save(path, save_all=True, append_images=[frame2], duration=1500, loop=0)
     return path
 
 class InferenceConfig:
@@ -164,35 +201,76 @@ def run_inference(images, model_path='data/ckpt.pth'):
             return batch, model(batch)
 
 def main():
-    """Main function."""
+    """CamFlow Camera Motion Estimation - Main Entry Point"""
     import argparse
-    parser = argparse.ArgumentParser(description='CamFlow blind inference')
-    parser.add_argument('--model_path', default='data/ckpt.pth', help='Model weights path (default: data/ckpt.pth)')
+    parser = argparse.ArgumentParser(
+        description='CamFlow: Estimate 2D camera motion between two images',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python blind_inference.py                    # Use default model
+  python blind_inference.py --model_path custom.pth  # Custom model
+
+Output:
+  - result.gif: Animated visualization of motion estimation
+  - results/: Directory with detailed outputs (flows, warped images)
+        """
+    )
+    parser.add_argument('--model_path', default='data/ckpt.pth', 
+                       help='Model weights path (default: data/ckpt.pth)')
     args = parser.parse_args()
+    
+    print("🎥 CamFlow - Camera Motion Estimation")
+    print("=" * 50)
     
     try:
         # Load images
-        print("Loading images from data/test_imgs...")
+        print("📸 Loading image pair from data/test_imgs/...")
         images = load_images()
-        print(f"Loaded: {[img.shape for img in images]}")
+        print(f"   ✓ Image 1: {images[0].shape}")
+        print(f"   ✓ Image 2: {images[1].shape}")
         
         # Run inference  
-        print("Running inference...")
+        print("\n🧠 Running camera motion estimation...")
         batch, output = run_inference(images, args.model_path)
+        print("   ✓ Motion estimation complete!")
         
-        # Show results
-        print("Output shapes:")
-        for k, v in output.items():
-            if hasattr(v, 'shape'):
-                print(f"  {k}: {v.shape}")
+        # Analyze results
+        print("\n📊 Motion Analysis Results:")
+        flow_f = output['flow_f'][0].cpu().numpy()
+        flow_b = output['flow_b'][0].cpu().numpy()
+        
+        # Calculate motion statistics
+        flow_f_mag = np.sqrt(flow_f[..., 0]**2 + flow_f[..., 1]**2)
+        flow_b_mag = np.sqrt(flow_b[..., 0]**2 + flow_b[..., 1]**2)
+        
+        print(f"   • Forward flow magnitude: {flow_f_mag.mean():.2f} ± {flow_f_mag.std():.2f} pixels")
+        print(f"   • Backward flow magnitude: {flow_b_mag.mean():.2f} ± {flow_b_mag.std():.2f} pixels")
+        print(f"   • Max motion detected: {max(flow_f_mag.max(), flow_b_mag.max()):.2f} pixels")
+        
+        # Save detailed results
+        print("\n💾 Saving results...")
+        results_dir = save_results(batch, output)
+        print(f"   ✓ Detailed results saved to: {results_dir}/")
+        print(f"     - flow_forward.npy: Forward optical flow field")
+        print(f"     - flow_backward.npy: Backward optical flow field") 
+        print(f"     - img1.png, img2.png: Original images")
+        print(f"     - img1_warped.png, img2_warped.png: Motion-compensated images")
         
         # Create visualization
-        print("Creating GIF...")
+        print("\n🎬 Creating motion visualization...")
         gif_path = create_gif(batch, output, "result.gif")
-        print(f"Saved: {gif_path}")
+        print(f"   ✓ Animation saved: {gif_path}")
+        print("     - Frame 1: [Original img1 | Original img1 | Original img2]")
+        print("     - Frame 2: [Original img2 | img2→img1 warped | img1→img2 warped]")
+        
+        print("\n✨ Camera motion estimation completed successfully!")
+        print(f"   📁 Check {results_dir}/ for detailed outputs")
+        print(f"   🎥 View {gif_path} for motion visualization")
         
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"❌ Error: {e}")
+        print("💡 Make sure data/test_imgs/img1.png and img2.png exist")
 
 if __name__ == '__main__':
     main()
