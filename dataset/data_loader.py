@@ -867,6 +867,77 @@ def collate_fn(batch):
     #     return None
 
 
+class BlindInference(Dataset):
+    
+    def __init__(self, params, phase="test"):
+        self.imgs = params.imgs  # List of 2 images [img1, img2]
+        assert len(self.imgs) == 2, "BlindInference requires exactly 2 images"
+        
+        self.crop_size = params.crop_size
+        self.patch_size_h, self.patch_size_w = params.crop_size
+        self.generate_size = params.generate_size
+        
+        self.mean_I = np.array([118.93, 113.97, 102.60]).reshape(1, 1, 3)
+        self.std_I = np.array([69.85, 68.81, 72.45]).reshape(1, 1, 3)
+    
+    def __len__(self):
+        return 1  # Only one pair of images
+    
+    def __getitem__(self, idx):
+        img1, img2 = self.imgs[0], self.imgs[1]
+        
+        # Check orientation and convert to landscape if needed
+        if img1.shape[0] > img1.shape[1]:  # Portrait
+            img1 = cv2.rotate(img1, cv2.ROTATE_90_CLOCKWISE)
+        if img2.shape[0] > img2.shape[1]:  # Portrait
+            img2 = cv2.rotate(img2, cv2.ROTATE_90_CLOCKWISE)
+        
+        img1_rgb, img2_rgb = img1, img2
+        imgs_rgb_full = torch.cat(
+            (torch.Tensor(img1_rgb), torch.Tensor(img2_rgb)), dim=-1).permute(
+                2, 0, 1).float() / 255.
+        
+        imgs_full = torch.cat((torch.Tensor(img1), torch.Tensor(img2)),
+                              dim=-1).permute(2, 0, 1).float()
+        ori_h, ori_w, _ = img1.shape
+        
+        img1 = (img1 - self.mean_I) / self.std_I
+        img2 = (img2 - self.mean_I) / self.std_I
+        
+        img1 = np.mean(img1, axis=2, keepdims=True)
+        img2 = np.mean(img2, axis=2, keepdims=True)
+        
+        img1_rs = cv2.resize(img1, (self.crop_size[1], self.crop_size[0]))
+        img2_rs = cv2.resize(img2, (self.crop_size[1], self.crop_size[0]))
+        
+        img1, img2, img1_rs, img2_rs = list(
+            map(torch.Tensor, [img1, img2, img1_rs, img2_rs]))
+        
+        imgs_gray_full = torch.cat((img1, img2), dim=-1).permute(2, 0, 1).float()
+        imgs_gray_patch = torch.cat(
+            (img1_rs.unsqueeze(0), img2_rs.unsqueeze(0)), dim=0).float()
+        
+        ori_size = torch.Tensor([ori_w, ori_h]).float()
+        Ph, Pw = img1_rs.size()
+        
+        pts = torch.Tensor([[0, 0], [Pw - 1, 0], [0, Ph - 1],
+                            [Pw - 1, Ph - 1]]).float()
+        start = torch.Tensor([0, 0]).reshape(2, 1, 1).float()
+        
+        data_dict = {
+            "imgs_gray_full": imgs_gray_full,
+            "imgs_rgb_full": imgs_rgb_full,
+            "imgs_full": imgs_full,
+            "imgs_gray_patch": imgs_gray_patch,
+            "ori_size": ori_size,
+            "pts": pts,
+            "start": start,
+            "ganhomo_mask": torch.ones_like(imgs_full),
+            "video_names": "blind_inference",
+        }
+        return data_dict
+
+
 def custom_collate(batch):
     # 手动拼接所有字段
     collated = {}
@@ -913,13 +984,17 @@ def fetch_dataloader(params):
     else:
         train_ds = DGMTrainData(params.db_path, params.crop_size,
                                 params.ori_size, params.rho)
-
-    val_ds = HomoTestData(params, phase='val')
-    test_ds = HomoTestData(params, phase='test')
-    test_ds_ghof = GhofBMK(params, phase='test')
-
-    # train_sampler = RandomSampler(train_ds,
-    #                               num_samples=params.partial_data_number)
+    if not hasattr(params, "imgs"):
+        val_ds = HomoTestData(params, phase='val')
+        test_ds = HomoTestData(params, phase='test')
+        test_ds_ghof = GhofBMK(params, phase='test')
+        blind_ds = None
+    else:
+        val_ds = None
+        test_ds = None
+        test_ds_ghof = None
+        blind_ds = BlindInference(params, phase='test')
+        
 
     dataloaders = {}
 
@@ -937,18 +1012,32 @@ def fetch_dataloader(params):
     )
     dataloaders["train"] = train_dl
 
-    dataloaders["ghof"] = DataLoader(
-        test_ds_ghof,
-        batch_size=1,
-        shuffle=False,
-        num_workers=4,
-        pin_memory=params.cuda,
-    )
+    if test_ds_ghof is not None:
+        dataloaders["ghof"] = DataLoader(
+            test_ds_ghof,
+            batch_size=1,
+            shuffle=False,
+            num_workers=4,
+            pin_memory=params.cuda,
+        )
+    else:
+        dataloaders["ghof"] = None
+    
+    if blind_ds is not None:
+        dataloaders["blind"] = DataLoader(
+            blind_ds,
+            batch_size=1,
+            shuffle=False,
+            num_workers=0,
+            pin_memory=params.cuda,
+        )
+    else:
+        dataloaders["blind"] = None
 
     # chosse val or test data loader for evaluate
     for split in ["val", "test"]:
         if split in params.eval_type:
-            if split == "val":
+            if split == "val" and val_ds is not None:
                 dl = DataLoader(
                     val_ds,
                     batch_size=params.eval_batch_size,
@@ -956,7 +1045,7 @@ def fetch_dataloader(params):
                     num_workers=4,
                     pin_memory=params.cuda,
                 )
-            elif split == "test":
+            elif split == "test" and test_ds is not None:
                 dl = DataLoader(
                     test_ds,
                     batch_size=params.eval_batch_size,
@@ -965,8 +1054,7 @@ def fetch_dataloader(params):
                     pin_memory=params.cuda,
                 )
             else:
-                raise ValueError(
-                    "Unknown eval_type in params, should in [val, test]")
+                dl = None
             dataloaders[split] = dl
         else:
             dataloaders[split] = None
