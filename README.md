@@ -2,6 +2,12 @@
 
 ## Quick Start
 
+### AI Coding
+
+✅ **Verified with AI Assistance**: This repository has been successfully tested and reproduced using AI coding tools.
+
+For AI-assisted development reference, the project follows KISS, YAGNI, and SOLID principles for easy automation and reproduction.
+
 ### Dataset Download
 Download the complete dataset from Hugging Face:
 ```bash
@@ -9,13 +15,8 @@ Download the complete dataset from Hugging Face:
 pip install huggingface_hub
 huggingface-cli download Lhaippp/CamFlow-ICCV25 --repo-type dataset --local-dir data
 ```
-
-### Inference With Given Images
-```bash
-python blind_inference.py
-```
-
-### Data Structure
+- **Source**: [Lhaippp/CamFlow-ICCV25](https://huggingface.co/datasets/Lhaippp/CamFlow-ICCV25)
+- **Contents**: Pre-trained model, motion basis, configuration, and test images
 ```
 data/
 ├── basis_24.pt      # Motion basis
@@ -26,29 +27,28 @@ data/
     └── img2.png
 ```
 
-## Dataset
-- **Source**: [Lhaippp/CamFlow-ICCV25](https://huggingface.co/datasets/Lhaippp/CamFlow-ICCV25)
-- **Contents**: Pre-trained model, motion basis, configuration, and test images
-- **Usage**: Complete setup for camera motion estimation inference
-
-## Alternative Setup
-
-### AI Coding
-
-✅ **Verified with AI Assistance**: This repository has been successfully tested and reproduced using AI coding tools.
-
-For AI-assisted development reference, the project follows KISS, YAGNI, and SOLID principles for easy automation and reproduction.
-
 ### Environment Setup
 ```bash
 # Simple setup (minimal dependencies)
 python simple_setup.py
 ```
 
-### Data Download
+### Inference With Given Images
 ```bash
-python download_data.py
+# Run with default paths (displays all parameters and paths)
+python blind_inference.py
+
+# Specify custom model or image directory
+python blind_inference.py --model_path custom.pth --imgs_dir custom_images/
+
+# Use direct image paths (recommended for flexibility)
+python blind_inference.py --image_paths /path/to/img1.png /path/to/img2.png
 ```
+
+The script **automatically handles portrait images**:
+- 🔄 **Auto-rotation**: Portrait images are automatically rotated to landscape for network processing
+- 🎯 **Original orientation preserved**: All outputs (images, flows, GIFs) are rotated back to original orientation
+- ⚡ **Seamless processing**: No manual intervention required
 
 ### Evaluation
 ```bash
