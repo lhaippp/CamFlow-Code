@@ -89,6 +89,8 @@ def main():
                       help="Directory to store downloaded data (default: data)")
     parser.add_argument("--specific_files", nargs="+", 
                       help="Download only specific files (optional)")
+    parser.add_argument("--minimal", action="store_true",
+                      help="Download only essential files (excludes comparison_methods.zip and GHOF-Cam.npy)")
     parser.add_argument("--setup_dirs", action="store_true",
                       help="Setup directory structure")
     
@@ -104,20 +106,46 @@ def main():
     repo_id = "Lhaippp/CamFlow-ICCV25"
     local_dir = os.path.join(args.data_dir, "CamFlow-ICCV25")
     
+    # Define minimal file set for basic functionality
+    if args.minimal:
+        minimal_files = [
+            "ckpt.pth",          # Model weights
+            "basis_24.pt",       # Motion basis
+            "params.json",       # Model configuration
+            "test_imgs/img1.png", # Test image 1
+            "test_imgs/img2.png", # Test image 2
+            "README.md"          # Documentation
+        ]
+        specific_files = minimal_files
+        print("Minimal download selected - downloading only essential files:")
+        for f in minimal_files:
+            print(f"  - {f}")
+        print(f"Excluded large files: comparison_methods.zip (2.56GB), GHOF-Cam.npy (2.8GB)")
+    else:
+        specific_files = args.specific_files
+    
     try:
         if args.method == "hf_hub":
-            download_with_hf_hub(repo_id, local_dir, specific_files=args.specific_files)
+            download_with_hf_hub(repo_id, local_dir, specific_files=specific_files)
         elif args.method == "git":
+            if args.minimal:
+                print("Warning: --minimal flag is ignored with git method. Use hf_hub method for selective download.")
             download_with_git()
         
         print("\n" + "="*50)
         print("Download completed successfully!")
         print("="*50)
         print(f"Data location: {local_dir}")
-        print("\nNext steps:")
-        print("1. Check the downloaded data structure")
-        print("2. Copy pre-trained weights to experiments/CAHomo/ if needed")
-        print("3. Run evaluation: python eval_main.py --model_dir experiments/CAHomo/ --restore_file experiments/CAHomo/HEM.pth")
+        if args.minimal:
+            print("\nMinimal download completed - ready for basic 2-image motion estimation!")
+            print("Next steps:")
+            print(f"1. Run evaluation: python eval_main.py --model_dir {local_dir} --restore_file {local_dir}/ckpt.pth")
+            print("2. For full dataset with comparison methods, run without --minimal flag")
+        else:
+            print("\nNext steps:")
+            print("1. Check the downloaded data structure")
+            print("2. Copy pre-trained weights to experiments/CAHomo/ if needed")
+            print("3. Run evaluation: python eval_main.py --model_dir experiments/CAHomo/ --restore_file experiments/CAHomo/HEM.pth")
         
     except Exception as e:
         print(f"Error during download: {e}")
