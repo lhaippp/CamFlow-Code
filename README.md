@@ -145,14 +145,4 @@ We gratefully acknowledge the following contributions that made this work possib
 - **[BasesHomo](https://github.com/megvii-research/BasesHomo)** for their elegant and effective motion basis decomposition ideas
 - **[HomoGAN](https://github.com/megvii-research/HomoGAN)** and **[DMHomo](https://github.com/lhaippp/DMHomo)** for the 8-basis foundation models and data augmentation strategies
 
-Special thanks to our co-authors for their invaluable contributions, the anonymous reviewers for their constructive feedback, and the Area Chair for recognizing the merit of this work.
-
----
-
-<div align="center">
-
-**CamFlow** — Bridging the gap between traditional computer vision and modern deep learning approaches.
-
-[![GitHub stars](https://img.shields.io/github/stars/lhaippp/CamFlow?style=social)](https://github.com/lhaippp/CamFlow)
-
-</div>
+Special thanks to our co-authors for their invaluable contributions.
