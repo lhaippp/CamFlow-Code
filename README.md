@@ -54,10 +54,31 @@ data/CamFlow-ICCV25/
 - **Full Contents**: Includes comparison_methods.zip (2.56GB) and GHOF-Cam.npy (2.8GB) for benchmarking
 
 ### Environment Setup
+
+**Option 1: Automated Setup (Recommended)**
 ```bash
-# Simple setup (minimal dependencies)
-python simple_setup.py
+# One-command setup with virtual environment
+python setup_environment.py
+source camflow_env/bin/activate  # Activate the environment
 ```
+
+<details>
+<summary><b>Option 2: Manual Setup (Click to expand)</b></summary>
+
+```bash
+# Create virtual environment
+python -m venv camflow_env
+source camflow_env/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Or install PyTorch GPU version specifically
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+pip install -r requirements.txt
+```
+
+</details>
 
 ### Inference With Given Images
 ```bash

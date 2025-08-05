@@ -1,28 +1,34 @@
-# Essential dependencies for CamFlow
-torch>=1.8.0,<3.0.0
-torchvision>=0.9.0,<1.0.0
-numpy>=1.19.0,<2.0.0
+# CamFlow - Camera Motion Estimation Requirements
+# Core dependencies for blind_inference.py
 
-# Model utilities
-accelerate>=0.12.0
-timm>=0.6.0
-einops>=0.4.0
+# Computer Vision & Image Processing
+opencv-python>=4.8.0
+Pillow>=10.0.0
+imageio>=2.30.0
+matplotlib>=3.7.0
 
-# Computer vision
-opencv-python>=4.5.0
-kornia>=0.6.0
+# Deep Learning Framework
+torch>=2.0.0
+torchvision>=0.15.0
+timm>=0.9.0
+kornia>=0.7.0
+accelerate>=0.20.0
+einops>=0.7.0
 
-# Image quality assessment
-pyiqa
-
-# Data handling
-h5py>=3.1.0
-imageio>=2.9.0
-huggingface_hub>=0.10.0
+# Scientific Computing
+numpy>=1.24.0
+h5py>=3.8.0
 
 # Utilities
-tqdm>=4.62.0
-coloredlogs>=15.0
-termcolor>=1.1.0
-matplotlib>=3.3.0
-prettytable>=2.0.0 
+termcolor>=2.3.0
+coloredlogs>=15.0.0
+tqdm>=4.65.0
+PyYAML>=6.0.0
+
+# For Hugging Face model downloads (optional)
+huggingface_hub>=0.15.0
+safetensors>=0.3.0
+
+# System utilities
+psutil>=5.9.0
+packaging>=23.0.0
