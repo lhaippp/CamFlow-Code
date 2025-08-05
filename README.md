@@ -33,6 +33,18 @@ data/
     └── img2.png
 ```
 
+### Qualitative Comparison
+We provide qualitative results of all comparison methods on GHOF-Cam dataset on Hugging Face for easy reproduction and comparison. Use the provided script to create comparison visualizations:
+
+```bash
+# Generate comparison GIFs for all methods
+python create_comparison_gif.py --folder comparison_methods
+```
+
+**Important Note**: The image arrangement differs between directories:
+- **'I' (Identity) directory**: Images are arranged as `[im1, im2]`
+- **All other comparison methods**: Images are arranged as `[im2_warp, im1_warp]`
+
 ### Environment Setup
 ```bash
 # Simple setup (minimal dependencies)
