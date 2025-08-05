@@ -1,121 +1,129 @@
-# Estimating 2D Camera Motion with Hybrid Motion Basis
+# CamFlow: Estimating 2D Camera Motion with Hybrid Motion Basis
 
-**📄 Project Page**: For detailed information, results, and methodology, visit our project page:
+<div align="center">
 
-**🔗 https://lhaippp.github.io/CamFlow/**
+[![Project Page](https://img.shields.io/badge/Project-Page-blue?style=for-the-badge&logo=github)](https://lhaippp.github.io/CamFlow/)
+[![Demo](https://img.shields.io/badge/🚀-Interactive_Demo-orange?style=for-the-badge&logo=huggingface)](https://huggingface.co/spaces/Lhaippp/CamFlow-ICCV)
+[![arXiv](https://img.shields.io/badge/arXiv-2507.22480-red?style=for-the-badge&logo=arxiv)](https://arxiv.org/abs/2507.22480)
+[![Dataset](https://img.shields.io/badge/🤗-Dataset-yellow?style=for-the-badge&logo=huggingface)](https://huggingface.co/datasets/Lhaippp/CamFlow-ICCV25)
 
-## 🌐 Web Demo (Try Now!)
+</div>
 
-**🚀 Interactive Demo**: Test CamFlow camera motion estimation directly in your browser!
+> **CamFlow** presents a novel approach for 2D camera motion estimation using hybrid motion basis decomposition. Our method achieves state-of-the-art performance on camera motion estimation tasks while maintaining computational efficiency.
 
-**🔗 https://huggingface.co/spaces/Lhaippp/CamFlow-ICCV**
+---
 
+## 🚀 Quick Start
 
-## Quick Start
+### 📦 Data Acquisition
 
-### AI Coding
+<details>
+<summary><b>Option A: Minimal Download (130MB)</b> — Essential files only</summary>
 
-✅ **Verified with AI Assistance**: This repository has been successfully tested and reproduced using AI coding tools.
-
-For AI-assisted development reference, the project follows KISS (Keep It Simple), YAGNI (You Aren't Gonna Need It), and SOLID principles for maintainable code and easy automation.
-
-### Dataset Download
-
-**Quick Start (Minimal Download - ~130MB):**
 ```bash
-# Download only essential files for basic motion estimation
 python download_data.py --minimal
 ```
 
-**Complete Dataset Download (~5.5GB):**
-```bash
-# Download everything including comparison methods and full benchmark
-python download_data.py
-```
-
-**Alternative with Hugging Face CLI:**
-```bash
-# Using Hugging Face Hub (downloads everything)
-pip install huggingface_hub
-huggingface-cli download Lhaippp/CamFlow-ICCV25 --repo-type dataset --local-dir data
-```
-
-- **Source**: [Lhaippp/CamFlow-ICCV25](https://huggingface.co/datasets/Lhaippp/CamFlow-ICCV25)
-- **Minimal Contents**: Essential files for 2-image motion estimation
+**Dataset Structure:**
 ```
 data/CamFlow-ICCV25/
 ├── basis_24.pt      # Motion basis (35MB)
-├── ckpt.pth         # Model weights (93MB)
+├── ckpt.pth         # Model weights (93MB) 
 ├── params.json      # Model configuration
 └── test_imgs/       # Test image pairs
     ├── img1.png
     └── img2.png
 ```
-- **Full Contents**: Includes comparison_methods.zip (2.56GB) and GHOF-Cam.npy (2.8GB) for benchmarking
+</details>
 
-### Environment Setup
+<details>
+<summary><b>Option B: Complete Dataset (5.5GB)</b> — Full benchmark suite</summary>
 
-**Option 1: Automated Setup (Recommended)**
 ```bash
-# One-command setup with virtual environment
-python setup_environment.py
-source camflow_env/bin/activate  # Activate the environment
+python download_data.py
+```
+
+**Additional Contents:** `comparison_methods.zip` (2.56GB), `GHOF-Cam.npy` (2.8GB)
+</details>
+
+<details>
+<summary><b>Option C: Hugging Face CLI</b> — Alternative download method</summary>
+
+```bash
+pip install huggingface_hub
+huggingface-cli download Lhaippp/CamFlow-ICCV25 --repo-type dataset --local-dir data
+```
+</details>
+
+**Data Source:** [🤗 Lhaippp/CamFlow-ICCV25](https://huggingface.co/datasets/Lhaippp/CamFlow-ICCV25)
+
+### ⚙️ Environment Setup
+
+```bash
+# Automated setup (recommended)
+python setup_environment.py && source camflow_env/bin/activate
 ```
 
 <details>
-<summary><b>Option 2: Manual Setup (Click to expand)</b></summary>
+<summary><b>Manual Setup</b> — Advanced users</summary>
 
 ```bash
 # Create virtual environment
-python -m venv camflow_env
-source camflow_env/bin/activate
+python -m venv camflow_env && source camflow_env/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Or install PyTorch GPU version specifically
+# Optional: GPU-accelerated PyTorch
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
-pip install -r requirements.txt
 ```
-
 </details>
 
-### Inference With Given Images
+### 🎯 Inference
+
+**Basic Usage:**
 ```bash
-# Run with default settings (basis_24.pt, ckpt.pth, params.json) on test images (img1.png, img2.png)
-python blind_inference.py
-
-# Specify custom model or image directory
-python blind_inference.py --model_path custom.pth --imgs_dir custom_images/
-
-# Use direct image paths (recommended for flexibility)
-python blind_inference.py --image_paths /path/to/img1.png /path/to/img2.png
+python blind_inference.py  # Uses test images from data/test_imgs/
 ```
 
-### Evaluation
+**Advanced Usage:**
 ```bash
-# Basic evaluation
+# Custom image paths
+python blind_inference.py --image_paths /path/to/img1.png /path/to/img2.png
+
+# Custom model directory  
+python blind_inference.py --model_path custom.pth --imgs_dir custom_images/
+```
+
+---
+
+## 📊 Evaluation & Benchmarking
+
+### Model Evaluation
+```bash
+# Standard evaluation
 python eval_main.py --model_dir data/CamFlow-ICCV25 --restore_file data/CamFlow-ICCV25/ckpt.pth
 
-# With IQA metrics
+# With Image Quality Assessment metrics
 python eval_main.py --model_dir data/CamFlow-ICCV25 --restore_file data/CamFlow-ICCV25/ckpt.pth --enable_iqa
 ```
 
-### Qualitative Comparison
-We provide qualitative results of all comparison methods on GHOF-Cam dataset on Hugging Face for easy reproduction and comparison. Use the provided script to create comparison visualizations:
+### Comparative Analysis
+Generate visual comparisons with baseline methods:
 
 ```bash
-# Generate comparison GIFs for all methods
 python create_comparison_gif.py --folder comparison_methods
 ```
 
-**Important Note**: The image arrangement differs between directories:
-- **'I' (Identity) directory**: Images are arranged as `[im1, im2]`
-- **All other comparison methods**: Images are arranged as `[im2_warp, im1_warp]`
+> **Note:** Image arrangements vary by method:
+> - **Identity method**: `[img1, img2]`  
+> - **Other methods**: `[img2_warped, img1_warped]`
 
-## Citation
+---
 
-If you find this work useful for your research, please cite our paper:
+## 📚 Citation
+
+If you find CamFlow useful in your research, please consider citing:
 
 ```bibtex
 @article{li2025estimating,
@@ -125,3 +133,26 @@ If you find this work useful for your research, please cite our paper:
   year={2025}
 }
 ```
+
+---
+
+## 🙏 Acknowledgements
+
+We gratefully acknowledge the following contributions that made this work possible:
+
+- **[GyroFlowPlus](https://github.com/lhaippp/GyroFlowPlus)** for providing the foundational dataset infrastructure
+- **[DeepHomography](https://github.com/JirongZhang/DeepHomography)** for pioneering deep homography estimation and providing essential training data  
+- **[BasesHomo](https://github.com/megvii-research/BasesHomo)** for their elegant and effective motion basis decomposition ideas
+- **[HomoGAN](https://github.com/megvii-research/HomoGAN)** and **[DMHomo](https://github.com/lhaippp/DMHomo)** for the 8-basis foundation models and data augmentation strategies
+
+Special thanks to our co-authors for their invaluable contributions, the anonymous reviewers for their constructive feedback, and the Area Chair for recognizing the merit of this work.
+
+---
+
+<div align="center">
+
+**CamFlow** — Bridging the gap between traditional computer vision and modern deep learning approaches.
+
+[![GitHub stars](https://img.shields.io/github/stars/lhaippp/CamFlow?style=social)](https://github.com/lhaippp/CamFlow)
+
+</div>
